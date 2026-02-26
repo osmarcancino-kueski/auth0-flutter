@@ -1,6 +1,8 @@
 package com.auth0.auth0_flutter.request_handlers
 
+import android.os.Build
 import com.auth0.android.Auth0
+import com.auth0.android.request.DefaultClient
 import com.auth0.android.util.Auth0UserAgent
 import com.auth0.auth0_flutter.utils.assertHasProperties
 import io.flutter.plugin.common.MethodCall
@@ -42,7 +44,25 @@ class MethodCallRequest {
                 version = userAgentMap["version"] as String,
             )
 
+            // Fix: Set a proper mobile User-Agent to prevent Auth0 Bot Detection
+            // from flagging API login requests as suspicious.
+            // Without this, OkHttp sends its default "okhttp/4.x.x" User-Agent,
+            // which Auth0 classifies as isMobile=false, triggering bot detection.
+            val mobileUserAgent = buildMobileUserAgent(userAgentMap)
+            account.networkingClient = DefaultClient(
+                defaultHeaders = mapOf("User-Agent" to mobileUserAgent)
+            )
+
             return MethodCallRequest(account, args)
+        }
+
+        private fun buildMobileUserAgent(userAgentMap: Map<String, String>): String {
+            val sdkName = userAgentMap["name"] ?: "auth0-flutter"
+            val sdkVersion = userAgentMap["version"] ?: "unknown"
+            return "Mozilla/5.0 (Linux; Android ${Build.VERSION.RELEASE}; " +
+                "${Build.MODEL} Build/${Build.DISPLAY}) " +
+                "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Version/4.0 $sdkName/$sdkVersion Mobile"
         }
     }
 }
