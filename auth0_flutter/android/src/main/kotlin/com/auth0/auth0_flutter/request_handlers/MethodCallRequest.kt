@@ -59,10 +59,10 @@ class MethodCallRequest {
         private fun buildMobileUserAgent(userAgentMap: Map<String, String>): String {
             val sdkName = userAgentMap["name"] ?: "auth0-flutter"
             val sdkVersion = userAgentMap["version"] ?: "unknown"
-            return "$sdkName/$sdkVersion " +
-                "(Linux; Android ${Build.VERSION.RELEASE}; " +
-                "${Build.MANUFACTURER} ${Build.MODEL}; " +
-                "SDK ${Build.VERSION.SDK_INT})"
+            return "Mozilla/5.0 (Linux; Android ${Build.VERSION.RELEASE}; " +
+                "${Build.MODEL} Build/${Build.DISPLAY}) " +
+                "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Version/4.0 $sdkName/$sdkVersion Mobile"
         }
     }
 }
