@@ -26,7 +26,7 @@ class CredentialsManagerMethodCallHandler(private val requestHandlers: List<Cred
         val requestHandler = requestHandlers.find { it.method == call.method }
 
         if (requestHandler != null) {
-            val request = MethodCallRequest.fromCall(call)
+            val request = MethodCallRequest.fromCall(call, context)
 
             val configuration =
                 request.data["credentialsManagerConfiguration"] as Map<*, *>?

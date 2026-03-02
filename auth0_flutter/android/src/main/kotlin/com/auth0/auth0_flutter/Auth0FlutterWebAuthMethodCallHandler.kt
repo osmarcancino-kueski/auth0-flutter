@@ -15,7 +15,7 @@ class Auth0FlutterWebAuthMethodCallHandler(private val requestHandlers: List<Web
         val requestHandler = requestHandlers.find { it.method == call.method }
 
         if (requestHandler != null) {
-            val request = MethodCallRequest.fromCall(call)
+            val request = MethodCallRequest.fromCall(call, activity)
 
             requestHandler.handle(activity, request, result)
         } else {
