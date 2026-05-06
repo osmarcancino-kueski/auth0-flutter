@@ -9,7 +9,9 @@ import com.auth0.android.request.RequestOptions
 import com.auth0.android.request.ServerResponse
 import com.auth0.android.util.Auth0UserAgent
 import com.auth0.auth0_flutter.utils.assertHasProperties
+import com.google.android.gms.net.CronetProviderInstaller
 import com.google.gson.Gson
+import io.flutter.Log
 import io.flutter.plugin.common.MethodCall
 import org.chromium.net.CronetEngine
 import org.chromium.net.CronetException
@@ -40,12 +42,29 @@ class MethodCallRequest {
 
         private fun getOrCreateCronetEngine(context: Context): CronetEngine {
             return cronetEngine ?: synchronized(this) {
-                cronetEngine ?: CronetEngine.Builder(context.applicationContext)
-                    .enableHttp2(true)
-                    .enableQuic(true)
-                    .enableBrotli(true)
-                    .build()
-                    .also { cronetEngine = it }
+                cronetEngine ?: run {
+                    val appContext = context.applicationContext
+                    // Trigger Play Services to install/update the Cronet provider
+                    // in the background. The returned Task is not awaited so we
+                    // never block the Flutter platform thread; if it fails we
+                    // just log and fall back to the bundled provider.
+                    CronetProviderInstaller.installProvider(appContext)
+                        .addOnFailureListener { e ->
+                            Log.w(
+                                "auth0_flutter",
+                                "Cronet provider install failed; using bundled provider",
+                                e
+                            )
+                        }
+
+                    CronetEngine.Builder(appContext)
+                        .enableHttp2(true)
+                        // QUIC is disabled by security requirement.
+                        .enableQuic(false)
+                        .enableBrotli(true)
+                        .build()
+                        .also { cronetEngine = it }
+                }
             }
         }
 
